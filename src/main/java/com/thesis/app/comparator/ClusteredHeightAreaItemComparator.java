@@ -7,8 +7,8 @@ import com.thesis.app.models.Item;
 public class ClusteredHeightAreaItemComparator implements Comparator<Item> {
 	private static final int DELTA = 50;
 	private double height;
-	
-	public ClusteredHeightAreaItemComparator(double height){
+
+	public ClusteredHeightAreaItemComparator(double height) {
 		this.height = height;
 	}
 

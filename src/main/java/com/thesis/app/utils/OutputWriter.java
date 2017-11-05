@@ -9,12 +9,12 @@ import com.thesis.app.models.Container;
 import com.thesis.app.models.Item;
 
 public class OutputWriter {
-	private static final double STEP = 2.0;
+	private static final double STEP = 0.1;
 
-	public static void ContainersToXyzFormat(List<Container> containers)
-			throws FileNotFoundException, UnsupportedEncodingException {
-		PrintWriter writer = new PrintWriter("src/main/resources/output.xyz",
-				"UTF-8");
+	public static void ContainersToXyzFormat(List<Container> containers,
+			String file) throws FileNotFoundException,
+			UnsupportedEncodingException {
+		PrintWriter writer = new PrintWriter(file, "UTF-8");
 		for (Container container : containers) {
 			int count = 8;
 			for (Item item : container.getItems()) {
@@ -55,17 +55,16 @@ public class OutputWriter {
 
 			writer.println("0 0 0 0 0 0");
 			writer.println("0 " + container.getDepth() + " 0 0 0 0");
-			writer.println(container.getWidth() + " 0 0 0 0 0 0");
+			writer.println(container.getWidth() + " 0 0 0 0 0");
 			writer.println("0 0 " + container.getHeight() + " 0 0 0");
 			writer.println("0 " + container.getDepth() + " "
 					+ container.getHeight() + " 0 0 0");
-			writer.println(container.getWidth() + " 0 0 "
+			writer.println(container.getWidth() + " 0 "
 					+ container.getHeight() + " 0 0 0");
-			writer.println(container.getWidth() + " 0 "
-					+ container.getDepth() + " 0 0 0 0");
-			writer.println(container.getWidth() + " 0 "
-					+ container.getDepth() + " " + container.getHeight()
-					+ " 0 0 0");
+			writer.println(container.getWidth() + " " + container.getDepth()
+					+ " 0 0 0 0");
+			writer.println(container.getWidth() + " " + container.getDepth() + " "
+					+ container.getHeight() + " 0 0 0");
 		}
 		writer.close();
 	}

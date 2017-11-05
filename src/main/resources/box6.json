@@ -1,7 +1,8 @@
 {
+	"id":6,
 	"weight":15,
-	"width":450,
-	"depth":400,
-	"height":455,
+	"width":45.0,
+	"depth":40.0,
+	"height":45.5,
 	"cost":133.33
 }

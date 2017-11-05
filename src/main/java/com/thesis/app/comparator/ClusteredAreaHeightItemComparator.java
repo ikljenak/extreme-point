@@ -22,10 +22,10 @@ public class ClusteredAreaHeightItemComparator implements Comparator<Item> {
 		double higherBound2 = 0;
 
 		for (int j = 1; area1 > higherBound1; j++) {
-			higherBound1 = j * width * depth /100 * DELTA;
+			higherBound1 = j * width * depth / 100 * DELTA;
 		}
 		for (int j = 1; area2 > higherBound2; j++) {
-			higherBound2 = j * width * depth /100 * DELTA;
+			higherBound2 = j * width * depth / 100 * DELTA;
 		}
 		if (higherBound1 - higherBound2 == 0) {
 			return (int) Math.signum(o1.getHeight() - o2.getHeight());

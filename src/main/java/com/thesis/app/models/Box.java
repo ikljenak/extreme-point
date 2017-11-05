@@ -1,5 +1,7 @@
 package com.thesis.app.models;
 
+import java.math.BigDecimal;
+
 public abstract class Box {
 	private double weight;
 	private double width;
@@ -51,7 +53,7 @@ public abstract class Box {
 	 * calculates the volume of the box as width * depth * height
 	 * @return volume of the box
 	 */
-	public double getVolume() {
-		return width * depth * height;
+	public BigDecimal getVolume() {
+		return new BigDecimal(width).multiply(new BigDecimal(depth)).multiply(new BigDecimal(height));
 	}
 }

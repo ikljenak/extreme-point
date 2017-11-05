@@ -1,99 +1,180 @@
 package com.thesis.app.models;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.thesis.app.comparator.ExtremePointComparator;
+import com.thesis.app.utils.Configuration;
 
 public class Container extends Box {
 
-	private static final int POSSIBLE_ROTATIONS = 6;
-
 	private List<Item> items = new ArrayList<Item>();
-	private Set<Point3D> extremePoints = new TreeSet<Point3D>(
-			new ExtremePointComparator());
-	private double loadedWeight;
-	private double cost;
+	private double loadedWeight = 0;
+	private double cost = 0;
+	private int id;
+	private int itemsPacked = 0;
+	private BigDecimal remainingVolume;
+	private Packable packable = null;
 
-	//CONSTRUCTORS
+	// CONSTRUCTORS
 	@JsonCreator
-	public Container(@JsonProperty("weight") double weight,
+	public Container(@JsonProperty("id") int id,
+			@JsonProperty("weight") double weight,
 			@JsonProperty("width") double width,
 			@JsonProperty("depth") double depth,
 			@JsonProperty("height") double height,
 			@JsonProperty("cost") double cost) {
 		super(weight, width, depth, height);
 		this.cost = cost;
+		this.id = id;
+
+		switch (Configuration.PACKING_METHOD) {
+		case "EP": {
+			this.packable = new ExtremePointPackable(this);
+			break;
+		}
+		case "MS":
+		default: {
+			this.packable = new MaximalSpacePackable(this);
+			break;
+		}
+		}
+		
+		this.remainingVolume = new BigDecimal(getWidth()).multiply(
+				new BigDecimal(getDepth())).multiply(
+				new BigDecimal(getHeight()));
 	}
-	
+
 	public Container(Container container) {
-		super(container.getWeight(), container.getWidth(), container.getDepth(), container.getHeight());
+		super(container.getWeight(), container.getWidth(),
+				container.getDepth(), container.getHeight());
 		this.cost = container.getCost();
+		this.remainingVolume = new BigDecimal(getWidth()).multiply(
+				new BigDecimal(getDepth())).multiply(
+				new BigDecimal(getHeight()));
+		;
 	}
+
 	// END CONSTRUCTORS
 
 	// --------------------------------------------------//
-	
+
 	// GETTERS AND SETTERS
-		public double getCost() {
-			return cost;
+
+	public int getId() {
+		return id;
+	}
+
+	public double getCost() {
+		return cost;
+	}
+
+	public void setCost(double cost) {
+		this.cost = cost;
+	}
+
+	public double getLoadedWeight() {
+		return loadedWeight;
+	}
+
+	public void setLoadedWeight(double loadedWeight) {
+		this.loadedWeight = loadedWeight;
+	}
+
+	public List<Item> getItems() {
+		return items;
+	}
+
+	public int getItemsPacked() {
+		return itemsPacked;
+	}
+
+	public BigDecimal getUsedVolume() {
+		BigDecimal loadedVolume = new BigDecimal(0);
+		for (Item item : items) {
+			loadedVolume = loadedVolume.add(item.getVolume());
 		}
+		return loadedVolume;
+	}
 
-		public void setCost(double cost) {
-			this.cost = cost;
+	public void setItems(List<Item> items) {
+		this.items = items;
+	}
+
+	public BigDecimal getRemainingVolume() {
+		return this.remainingVolume;
+	}
+
+	public Packable getPackable() {
+		return this.packable;
+	}
+
+	public void setPackable(Packable packable) {
+		this.packable = packable;
+	}
+
+	// END GETTERS AND SETTERS
+
+	// --------------------------------------------------//
+
+	// TO STRING
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("-----------------------------\n");
+		sb.append("CONTAINER\n");
+		sb.append("Weight: ").append(loadedWeight).append("\n");
+		sb.append("Width: ").append(getWidth()).append("\n");
+		sb.append("Depth: ").append(getDepth()).append("\n");
+		sb.append("Height: ").append(getHeight()).append("\n");
+		sb.append("Used space: ").append(getUsedVolume()).append("\n");
+		sb.append("Items: " + this.getItems().size() + "\n");
+		sb.append("-----------------------------\n");
+		for (Item item : items) {
+			sb.append(item.toString());
 		}
+		return sb.toString();
+	}
 
-		public double getLoadedWeight() {
-			return loadedWeight;
-		}
+	// END TO STRING
 
-		public void setLoadedWeight(double loadedWeight) {
-			this.loadedWeight = loadedWeight;
-		}
+	// --------------------------------------------------//
 
-		public List<Item> getItems() {
-			return items;
-		}
-
-		public void setItems(List<Item> items) {
-			this.items = items;
-		}
-
-		// END GETTERS AND SETTERS
-
-		// --------------------------------------------------//
-
-		// TO STRING
-		@Override
-		public String toString() {
-			StringBuilder sb = new StringBuilder();
-			sb.append("-----------------------------\n");
-			sb.append("CONTAINER\n");
-			sb.append("Width: ").append(getWidth()).append("\n");
-			sb.append("Depth: ").append(getDepth()).append("\n");
-			sb.append("Height: ").append(getHeight()).append("\n");
-			sb.append("\n");
-			sb.append("Items: " + this.getItems().size() + "\n");
-			for (Item item : this.getItems()) {
-				sb.append(item.toString());
-			}
-			sb.append("-----------------------------\n");
-			return sb.toString();
-		}
-		// END TO STRING
-
-		// --------------------------------------------------//
-	
 	/**
 	 * Creates a copy of current container
+	 * 
 	 * @return the copy of the container
 	 */
 	public Container copy() {
-		return new Container(this);
+		Container container = new Container(this);
+		container.setPackable(new ExtremePointPackable(container));
+		for(Item item: this.getItems()){
+			container.add(new Item(item));
+		}
+		return container;
+	}
+
+	/**
+	 * get the coords of the front top right corner of the container
+	 * 
+	 * @return Point3D with the coords
+	 */
+	public Point3D getFrontTopRightCorner() {
+		return new Point3D(this.getWidth(), this.getDepth(), this.getHeight());
+	}
+
+	/**
+	 * Adds an item to the container
+	 * 
+	 * @param item
+	 */
+	public void add(Item item) {
+		items.add(item);
+		itemsPacked++;
+		this.loadedWeight = loadedWeight + item.getWeight();
+		this.remainingVolume = this.remainingVolume.subtract(item.getVolume());
 	}
 
 	/**
@@ -105,35 +186,11 @@ public class Container extends Box {
 	 * @return true if the item could be packed, false otherwise
 	 */
 	public boolean pack(Item item) {
-		Point3D position = null;
-
 		if (!checkIfFits(item)) {
 			return false;
 		}
 
-		if (items.isEmpty()) {
-			position = new Point3D(0, 0, 0);
-		} else {
-			// An extreme point where the item could be placed is searched. If
-			// there is no such Extreme Point, the item is rotated until a point
-			// is found or every rotation is tried
-			for (int i = 0; i < POSSIBLE_ROTATIONS; i++) {
-				item.rotate(i);
-				position = checkFittingExtremePoint(item);
-				if (position != null) {
-					break;
-				}
-			}
-			if (position == null) {
-				return false;
-			}
-		}
-
-		item.setPosition(position);
-		addNewExtremePoints(position, item);
-		items.add(item);
-		this.loadedWeight = loadedWeight + item.getWeight();
-		return true;
+		return packable.pack(item);
 	}
 
 	/**
@@ -145,88 +202,10 @@ public class Container extends Box {
 	 *         dimension of the container
 	 */
 	private boolean checkIfFits(Item item) {
-		if (item.getDepth() > this.getDepth()
+		return !(item.getDepth() > this.getDepth()
 				|| item.getWidth() > this.getWidth()
 				|| item.getHeight() > this.getHeight()
-				|| item.getWeight() > this.getWeight()
-				|| item.getWeight() + loadedWeight > this.getWeight()) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * When a package is added new Extreme Points where more items could be
-	 * packed are calculated. Given a position (x, y, z) and the dimensions of
-	 * an item (w, d, h), the new Extreme Points are (x + w, y, z), (x, y + d,
-	 * z) and (x, y, z + h)
-	 * 
-	 * @param position
-	 *            , the coordinates of the left-back-bottom corner of the item
-	 *            relative to the left-back-bottom corner of the container
-	 * @param item
-	 */
-	private void addNewExtremePoints(Point3D position, Item item) {
-		double x = position.getX();
-		double y = position.getY();
-		double z = position.getZ();
-
-		Point3D xAxis = new Point3D(x + item.getWidth(), y, z);
-		Point3D yAxis = new Point3D(x, y + item.getDepth(), z);
-		Point3D zAxis = new Point3D(x, y, z + item.getHeight());
-
-		if (xAxis.getX() < this.getWidth()) {
-			extremePoints.add(xAxis);
-		}
-		if (xAxis.getY() < this.getDepth()) {
-			extremePoints.add(yAxis);
-		}
-		if (xAxis.getZ() < this.getHeight()) {
-			extremePoints.add(zAxis);
-		}
-	}
-
-	/**
-	 * check if an item can be positioned in any of the Extreme points without
-	 * overlapping with previously packed items.
-	 * 
-	 * @param item
-	 * @return the coordinates of the Extreme Point where the item could be
-	 *         packed
-	 */
-	private Point3D checkFittingExtremePoint(Item item) {
-		for (Point3D extremePoint : extremePoints) {
-			item.setPosition(extremePoint);
-			// get maximum coordinate in every axis
-			double x = extremePoint.getX() + item.getWidth();
-			double y = extremePoint.getY() + item.getDepth();
-			double z = extremePoint.getZ() + item.getHeight();
-
-			boolean overlap = false;
-
-			// check if item fits within the bounds of the container
-			if (x > this.getWidth() || y > this.getDepth()
-					|| z > this.getHeight()) {
-				overlap = true;
-			}
-
-			// for every item check if there is overlapping
-			if (!overlap) {
-				for (Item itemPacked : items) {
-					if (item.overlaps(itemPacked)) {
-						overlap = true;
-						break;
-					}
-				}
-			}
-
-			// if there is not overlapping the item could be placed
-			// in this extreme point
-			if (!overlap) {
-				extremePoints.remove(extremePoint);
-				return extremePoint;
-			}
-		}
-		return null;
+				|| item.getWeight() > this.getWeight() || item.getWeight()
+				+ loadedWeight > this.getWeight());
 	}
 }

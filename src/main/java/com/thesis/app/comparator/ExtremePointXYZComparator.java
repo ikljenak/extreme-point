@@ -2,11 +2,11 @@ package com.thesis.app.comparator;
 
 import java.util.Comparator;
 
-import com.thesis.app.models.Point3D;
+import com.thesis.app.models.ExtremePoint;
 
-public class ExtremePointComparator implements Comparator<Point3D> {
+public class ExtremePointXYZComparator implements Comparator<ExtremePoint> {
 
-	public int compare(Point3D o1, Point3D o2) {
+	public int compare(ExtremePoint o1, ExtremePoint o2) {
 		double zCoord = o1.getZ() - o2.getZ();
 		double yCoord = o1.getY() - o2.getY();
 		double xCoord = o1.getX() - o2.getX();
