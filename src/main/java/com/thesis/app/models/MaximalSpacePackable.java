@@ -5,12 +5,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.thesis.app.comparator.MaximalSpaceVolumeComparator;
+import com.thesis.app.comparator.MaximalSpaceXYZComparator;
 
 public class MaximalSpacePackable implements Packable {
 
-	private Set<MaximalSpace> maximalSpaces = new TreeSet<MaximalSpace>(
-			new MaximalSpaceVolumeComparator());
+	private Set<MaximalSpace> maximalSpaces = new TreeSet<MaximalSpace>(new MaximalSpaceXYZComparator());
 	private Container container;
 	private static final int POSSIBLE_ROTATIONS = 6;
 
