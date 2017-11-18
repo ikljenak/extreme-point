@@ -16,7 +16,7 @@ public class Application {
 
 	public static void main(String[] args) throws IOException,
 			InterruptedException {
-		initialConfiguration();
+		initialConfiguration(args[0]);
 		for (int i = 0; i < Configuration.ITERATIONS_NUMBER; i++) {
 			Result result = run();
 			time += result.getTime();
@@ -49,10 +49,10 @@ public class Application {
 		}
 	}
 
-	private static void initialConfiguration() throws IOException {
+	private static void initialConfiguration(String propertiesFile) throws IOException {
 		Properties properties = new Properties();
 		InputStream is = Thread.currentThread().getContextClassLoader()
-				.getResourceAsStream("config.properties");
+				.getResourceAsStream(propertiesFile);
 		properties.load(is);
 		Configuration.setProperties(properties);
 	}

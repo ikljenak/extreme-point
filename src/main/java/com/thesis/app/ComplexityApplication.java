@@ -19,11 +19,12 @@ import com.thesis.app.utils.Configuration;
 public class ComplexityApplication {
 
 	private static final List<Item> items = new LinkedList<Item>();
-	private static long time[] = new long[Configuration.ITERATIONS_NUMBER];
+	private static long[] time;
 	private static int itemsPacked;
 
 	public static void main(String[] args) throws IOException {
-		initialConfiguration();
+		initialConfiguration(args[0]);
+		time = new long[Configuration.ITERATIONS_NUMBER];
 		for (int i = 0; i < Configuration.ITERATIONS_NUMBER; i++) {
 			Result result = run();
 			time[i] = result.getTime();
@@ -77,10 +78,10 @@ public class ComplexityApplication {
 		in.close();
 	}
 
-	private static void initialConfiguration() throws IOException {
+	private static void initialConfiguration(String propertiesFile) throws IOException {
 		Properties properties = new Properties();
 		InputStream is = Thread.currentThread().getContextClassLoader()
-				.getResourceAsStream("config.bruteforce.properties");
+				.getResourceAsStream(propertiesFile);
 		properties.load(is);
 		Configuration.setProperties(properties);
 	}
