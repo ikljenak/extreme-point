@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 
 public class TestSetGenerator {
-	private final static int itemsAmount = 100;
+	private final static int itemsAmount = 100000;
 
 	private final static double width = 5;
 	private final static double depth = 5;

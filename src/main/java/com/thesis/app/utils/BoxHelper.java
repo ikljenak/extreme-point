@@ -9,7 +9,7 @@ import java.util.Map;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.thesis.app.App;
+import com.thesis.app.Application;
 import com.thesis.app.models.Container;
 
 public class BoxHelper {
@@ -21,7 +21,7 @@ public class BoxHelper {
 		for (int i = 0; i < Configuration.CONTAINERS_NUMBER; i++) {
 			String json;
 			try {
-				json = IOUtils.toString(App.class.getClassLoader()
+				json = IOUtils.toString(Application.class.getClassLoader()
 						.getResourceAsStream("box" + (i + 1) + ".json"), Charset
 						.defaultCharset());
 				this.addBox(i + 1, mapper.readValue(json, Container.class));

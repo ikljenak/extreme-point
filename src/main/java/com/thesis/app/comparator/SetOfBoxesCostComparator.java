@@ -12,7 +12,7 @@ import org.apache.commons.io.IOUtils;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.thesis.app.App;
+import com.thesis.app.Application;
 import com.thesis.app.models.Container;
 
 public class SetOfBoxesCostComparator implements Comparator<List<Integer>> {
@@ -23,7 +23,7 @@ public class SetOfBoxesCostComparator implements Comparator<List<Integer>> {
 	public SetOfBoxesCostComparator() throws JsonParseException, JsonMappingException, IOException {
 		ObjectMapper mapper = new ObjectMapper();
 		for (int i = 0; i < AMOUNT_OF_BOXES; i++) {
-			String json = IOUtils.toString(App.class.getClassLoader()
+			String json = IOUtils.toString(Application.class.getClassLoader()
 					.getResourceAsStream("box" + (i + 1) + ".json"), Charset
 					.defaultCharset());
 			costs.put(i+1, mapper.readValue(json, Container.class).getCost());

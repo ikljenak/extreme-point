@@ -2,12 +2,11 @@ package com.thesis.app.comparator;
 
 import java.util.Comparator;
 
-import com.thesis.app.models.Solution;
+import com.thesis.app.models.SolutionGenetic;
 
-public class SolutionFitnessComparator implements Comparator<Solution> {
+public class SolutionFitnessComparator implements Comparator<SolutionGenetic> {
 
-	public int compare(Solution solution1, Solution solution2) {
-		return (int)Math.signum(solution2.fitness() - solution1.fitness());
+	public int compare(SolutionGenetic solution1, SolutionGenetic solution2) {
+		return (int)Math.signum(solution2.getFitness() - solution1.getFitness());
 	}
-
 }

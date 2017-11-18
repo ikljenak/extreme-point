@@ -92,11 +92,11 @@ public class Container extends Box {
 	}
 
 	public BigDecimal getUsedVolume() {
-		BigDecimal loadedVolume = new BigDecimal(0);
+		BigDecimal usedVolume = new BigDecimal(0);
 		for (Item item : items) {
-			loadedVolume = loadedVolume.add(item.getVolume());
+			usedVolume = usedVolume.add(item.getVolume());
 		}
-		return loadedVolume;
+		return usedVolume;
 	}
 
 	public void setItems(List<Item> items) {
