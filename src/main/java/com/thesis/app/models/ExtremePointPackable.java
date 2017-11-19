@@ -13,56 +13,82 @@ public class ExtremePointPackable implements Packable {
 
 	public ExtremePointPackable(Container container) {
 		this.container = container;
-		this.extremePoints = new TreeSet<ExtremePoint>(
-				new ExtremePointDistanceToTopFrontRightCornerComparator());
+		//this.extremePoints = new HashSet<ExtremePoint>();
+		 this.extremePoints = new TreeSet<ExtremePoint>(
+		 new ExtremePointDistanceToTopFrontRightCornerComparator());
 	}
 
+	/**
+	 * Attempts to pack an item inside a container
+	 * 
+	 * @param item
+	 * @return true if item could be packed, false otherwise
+	 */
 	public boolean pack(Item item) {
 		Point3D position = null;
 
 		if (container.getItemsPacked() == 0) {
+			// If the container has no items inside, the first one is packed in
+			// position (0, 0, 0)
 			position = new Point3D(0, 0, 0);
 		} else {
-			// An extreme point where the item could be placed is searched. If
+			// An Extreme Point where the item could be placed is searched. If
 			// there is no such Extreme Point, the item is rotated until a point
 			// is found or every rotation is tried
 			for (int i = 0; i < POSSIBLE_ROTATIONS; i++) {
 				item.rotate(i);
 				position = checkFittingExtremePoint(item, container);
 				if (position != null) {
+					// When a suitable position and orientation is found,
+					// remaining rotations are no longer tried
 					break;
 				}
 			}
 		}
 
 		if (position == null) {
+			// if no suitable position is found, false is returned to indicate
+			// that the item could not be packed
 			return false;
-
 		}
 
+		// if there is a suitable position, it is used as the place of the item
+		// inside the container
 		item.setPosition(position);
 		container.add(item);
+
+		// New Extreme Points are generated
 		addNewExtremePoints(position, item, container);
 		return true;
 	}
 
+	/**
+	 * Checks if an item fits on any of the Extreme Points defined inside a
+	 * container
+	 * 
+	 * @param item
+	 * @param container
+	 * @return the coordinates of a Extreme Point where an item could be placed
+	 */
 	private Point3D checkFittingExtremePoint(Item item, Container container) {
 		Point3D chosenExtremePoint = null;
 		for (Point3D extremePoint : extremePoints) {
 			item.setPosition(extremePoint);
-			// get maximum coordinate in every axis
+			// Get maximum coordinate in every axis
 			double x = extremePoint.getX() + item.getWidth();
 			double y = extremePoint.getY() + item.getDepth();
 			double z = extremePoint.getZ() + item.getHeight();
 
 			boolean overlap = false;
-			// check if item fits within the bounds of the container
+			// If the item exceeds the dimensions of the container when placed
+			// on the evaluated Extreme Point, a flag is set to proceed with
+			// analysis of next Extreme Point
 			if (x > container.getWidth() || y > container.getDepth()
 					|| z > container.getHeight()) {
 				overlap = true;
 			}
 
-			// for every item check if there is overlapping
+			// For every item already packed, check if there is overlapping
 			if (!overlap) {
 				for (Item itemPacked : container.getItems()) {
 					if (item.overlaps(itemPacked)) {
@@ -72,13 +98,16 @@ public class ExtremePointPackable implements Packable {
 				}
 			}
 
-			// if there is not overlapping the item could be placed
+			// If there is not overlapping the item could be placed
 			// in this extreme point
 			if (!overlap) {
 				chosenExtremePoint = extremePoint;
 				break;
 			}
 		}
+
+		// If a Extreme Point is selected it is removed from the list of Extreme
+		// Points
 		if (chosenExtremePoint != null) {
 			extremePoints.remove(chosenExtremePoint);
 		}
@@ -110,7 +139,7 @@ public class ExtremePointPackable implements Packable {
 				frontTopRightCorner);
 		ExtremePoint zAxis = new ExtremePoint(x, y, z + item.getHeight(),
 				frontTopRightCorner);
-		
+
 		if (xAxis.getX() < container.getWidth()) {
 			extremePoints.add(xAxis);
 		}

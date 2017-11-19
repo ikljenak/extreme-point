@@ -10,35 +10,60 @@ public class SolutionGenetic {
 	private int[] genes = new int[Configuration.CONTAINERS_NUMBER];
 	private int itemsPacked = 0;
 	private int totalItems = 0;
+	private BigDecimal itemsVolume = new BigDecimal(0);
 	private BigDecimal remainingVolume = new BigDecimal(0);
 	private BigDecimal totalVolume = new BigDecimal(0);
 	private BoxHelper boxHelper = BoxHelper.getInstance();
 	private double fitness;
-	private double maxCost;
+	private double refCost;
+	private int refNumBoxes;
 
 	public SolutionGenetic() {
 
 	}
 
 	public SolutionGenetic(BigDecimal volume) {
+		itemsVolume = volume;
+		initialPopulation(volume);
+	}
+
+	/**
+	 * Generates an initial population for the genetic algorithm
+	 * 
+	 * @param volume
+	 *            , total volume of items to be packed
+	 */
+	private void initialPopulation(BigDecimal volume) {
 		double higherCost = 0;
 		int amountOfBoxes = 0;
+
+		// Loop to complete every gene
 		for (int i = 0; i < genes.length; i++) {
+			// Get container associated to gene
 			Container container = boxHelper.getBox(i + 1);
+
+			// Calculate volume of container
 			BigDecimal containerVolume = container.getVolume();
+
+			// calculate amount of containers that would be necessary to hold
+			// all the items
 			double maxAmountOfBoxesOfAClass = volume.divide(containerVolume,
 					MathContext.DECIMAL128).doubleValue() + 1;
-			genes[i] = (int) Math.rint(Math.random()
-					* maxAmountOfBoxesOfAClass);
 
+			// Set gene with a random value between 0 and previously calculated
+			// maximum
+			genes[i] = (int) Math
+					.rint(Math.random() * maxAmountOfBoxesOfAClass) / 2;
+			refNumBoxes += genes[i];
 			double cost = container.getCost();
 			if (cost > higherCost) {
 				higherCost = cost;
 				amountOfBoxes = (int) Math.rint(volume.divide(containerVolume,
-						MathContext.DECIMAL128).doubleValue());
+						MathContext.DECIMAL128).doubleValue() + 1);
 			}
 		}
-		maxCost = higherCost * amountOfBoxes;
+		refNumBoxes /= genes.length;
+		refCost = higherCost * amountOfBoxes;
 	}
 
 	public void calculateFitness() {
@@ -50,21 +75,19 @@ public class SolutionGenetic {
 		}
 
 		itemsPacked = itemsPacked != totalItems ? -1 : 1;
-		fitness = ((maxCost)
-				/ calculateCost()
-				+ getUsedVolume() + 5 / amountOfBoxes)
+		fitness = (refCost / calculateCost() + getUsedVolume() +  refNumBoxes / amountOfBoxes)
 				* itemsPacked;
 	}
-	
+
 	public double getUsedVolume() {
 		double usedVolume;
 		try {
-			usedVolume = 1 - remainingVolume.divide(totalVolume,
+			usedVolume = itemsVolume.divide(totalVolume,
 					MathContext.DECIMAL128).doubleValue();
-		} catch(ArithmeticException e){
+		} catch (ArithmeticException e) {
 			usedVolume = 0;
 		}
-		
+
 		return usedVolume;
 	}
 
@@ -120,26 +143,38 @@ public class SolutionGenetic {
 		return this.itemsPacked;
 	}
 
-	public SolutionGenetic cross(SolutionGenetic solution) {
-		SolutionGenetic ans = new SolutionGenetic();
-		int[] solutionGenes = getGenes();
-		int[] eliteGenes = solution.getGenes();
-		int[] ansGenes = new int[Configuration.CONTAINERS_NUMBER];
+	/**
+	 * Takes two chromosomes and perform a crossover to generate offspring
+	 * 
+	 * @param solution
+	 *            , chromosome that will be crossed with the current instance
+	 * @return New chromosome originated from two chromosome parents from the
+	 *         previous generation
+	 */
+	public SolutionGenetic cross(SolutionGenetic eliteProgenitor) {
+		SolutionGenetic offspring = new SolutionGenetic();
+		int[] progenitorGenes = getGenes();
+		int[] eliteGenes = eliteProgenitor.getGenes();
+		int[] offspringGenes = new int[Configuration.CONTAINERS_NUMBER];
 
-		for (int i = 0; i < Configuration.CONTAINERS_NUMBER; i++) {
+		for (int i = 0; i < offspringGenes.length; i++) {
+			// With a given probability the offspring has the gene of one
+			// progenitor or the other
 			if (Math.random() > Configuration.ELITE_PROBABILITY) {
-				ansGenes[i] = solutionGenes[i];
+				offspringGenes[i] = progenitorGenes[i];
 			} else {
-				ansGenes[i] = eliteGenes[i];
+				offspringGenes[i] = eliteGenes[i];
 			}
 
+			// With a given probability the offspring will experience a mutation
+			// that will multiply the received gene by a factor
 			if (Math.random() < Configuration.MUTATION_PROBABILITY) {
-				ansGenes[i] *= 3;
+				offspringGenes[i] *= Configuration.MUTATION_FACTOR;
 			}
 		}
 
-		ans.setGenes(ansGenes);
-		return ans;
+		offspring.setGenes(offspringGenes);
+		return offspring;
 	}
 
 	private void setGenes(int[] genes) {

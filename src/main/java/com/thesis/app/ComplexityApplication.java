@@ -40,7 +40,7 @@ public class ComplexityApplication {
 		Container c = BoxHelper.getInstance().getBox(
 				Configuration.CONTAINERS_NUMBER - 1);
 		containers.add(c.copy());
-
+		
 		int itemsPacked = 0;
 		for (Item item : items) {
 			int index = 0;
@@ -58,7 +58,6 @@ public class ComplexityApplication {
 				}
 			}
 		}
-
 		long endTime = System.currentTimeMillis();
 		return new Result(endTime - startTime, 0, 0, 0,
 				itemsPacked);

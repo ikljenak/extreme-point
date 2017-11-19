@@ -71,7 +71,7 @@ public class Genetic {
 		SolutionGenetic finalSolution = getBestSolution(possibleBoxes);
 		long endTime = System.currentTimeMillis();
 		pack(finalSolution, Configuration.VISUAL_OUTPUT);
-		
+
 		return new Result(endTime - startTime,
 				finalSolution.calculateAmountOfBoxes(),
 				finalSolution.calculateCost(), finalSolution.getUsedVolume(),
@@ -101,14 +101,10 @@ public class Genetic {
 			}
 		}
 
-		BigDecimal remainingVolume = new BigDecimal(0);
 		BigDecimal totalVolume = new BigDecimal(0);
 		for (Container container : containers) {
-			remainingVolume = remainingVolume.add(container
-					.getRemainingVolume());
 			totalVolume = totalVolume.add(container.getVolume());
 		}
-		solution.setRemainingVolume(remainingVolume);
 		solution.setTotalVolume(totalVolume);
 
 		solution.setItemsPacked(itemsPacked);
@@ -125,24 +121,38 @@ public class Genetic {
 		return solutions.get(0);
 	}
 
+	/**
+	 * Evolves a population into the next generation
+	 * 
+	 * @param oldGeneration
+	 * @return list of members of the population in the next generation
+	 */
 	private List<SolutionGenetic> newGenerationSolutions(
-			List<SolutionGenetic> possibleBoxes) {
-		Collections.sort(possibleBoxes, new SolutionFitnessComparator());
+			List<SolutionGenetic> oldGeneration) {
+		// Members of the population are sorted according to their fitness
+		Collections.sort(oldGeneration, new SolutionFitnessComparator());
 
-		List<SolutionGenetic> ans = new ArrayList<SolutionGenetic>();
+		List<SolutionGenetic> newGeneration = new ArrayList<SolutionGenetic>();
+
+		// Elite size is calculated
 		int eliteSize = (int) (Configuration.POPULATION_SIZE * Configuration.ELITE_PERCENTAGE);
 
-		ans.addAll(possibleBoxes.subList(0, eliteSize));
+		// Elite members of the old generation directly pass to the new one
+		newGeneration.addAll(oldGeneration.subList(0, eliteSize));
 
 		for (int i = 0; i < eliteSize; i++) {
-			SolutionGenetic solution = possibleBoxes.get((new Random())
-					.nextInt(possibleBoxes.size() - eliteSize) + eliteSize);
+			// Random members of the rest of the population are selected
+			SolutionGenetic solution = oldGeneration.get((new Random())
+					.nextInt(oldGeneration.size() - eliteSize) + eliteSize);
+
+			// Every randomly selected member is crossed with each elite member
 			for (int k = 0; k < eliteSize; k++) {
-				solution = solution.cross(possibleBoxes.get(k));
-				ans.add(solution);
+				solution = solution.cross(oldGeneration.get(k));
+				//the offspring is included in the next generation
+				newGeneration.add(solution);
 			}
 		}
-		return ans;
+		return newGeneration;
 	}
 
 	private void initializeItems() throws IOException {
