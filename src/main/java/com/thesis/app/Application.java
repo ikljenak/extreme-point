@@ -30,12 +30,9 @@ public class Application {
 			cost[i] = result.getCost();
 			usedVolume[i] = result.getUsedVolume();
 			itemsPacked[i] = result.getItemsPacked();
-			
-			System.out.println("TIME: " + time[i]);
-			System.out.println("AMOUNT OF CONTAINERS: " + amountOfContainers[i]);
-			System.out.println("COST: " + cost[i]);
-			System.out.println("USED VOLUME: " + usedVolume[i]);
-			System.out.println("ITEMS PACKED: " + itemsPacked[i]);
+
+			System.out.println(time[i] + "," + amountOfContainers[i] + ","
+					+ cost[i] + "," + usedVolume[i] + "," + itemsPacked[i]);
 		}
 	}
 
@@ -54,7 +51,8 @@ public class Application {
 		}
 	}
 
-	private static void initialConfiguration(String propertiesFile) throws IOException {
+	private static void initialConfiguration(String propertiesFile)
+			throws IOException {
 		Properties properties = new Properties();
 		InputStream is = Thread.currentThread().getContextClassLoader()
 				.getResourceAsStream(propertiesFile);
