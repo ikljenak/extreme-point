@@ -28,9 +28,9 @@ import com.thesis.app.utils.OutputWriter;
 
 public class Genetic {
 
-	private static double bestFitness = 0;
-	private static double iterationBestFitness = 0;
-	private static final List<Item> items = new LinkedList<Item>();
+	private double bestFitness = 0;
+	private double iterationBestFitness = 0;
+	private final List<Item> items = new LinkedList<Item>();
 
 	public Result run() throws IOException, InterruptedException {
 		initializeItems();

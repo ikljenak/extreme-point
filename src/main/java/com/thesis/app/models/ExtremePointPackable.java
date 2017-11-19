@@ -1,9 +1,7 @@
 package com.thesis.app.models;
 
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
-
-import com.thesis.app.comparator.ExtremePointDistanceToTopFrontRightCornerComparator;
 
 public class ExtremePointPackable implements Packable {
 
@@ -13,9 +11,9 @@ public class ExtremePointPackable implements Packable {
 
 	public ExtremePointPackable(Container container) {
 		this.container = container;
-		//this.extremePoints = new HashSet<ExtremePoint>();
-		 this.extremePoints = new TreeSet<ExtremePoint>(
-		 new ExtremePointDistanceToTopFrontRightCornerComparator());
+		this.extremePoints = new HashSet<ExtremePoint>();
+		 //this.extremePoints = new TreeSet<ExtremePoint>(
+		 //new ExtremePointDistanceToTopFrontRightCornerComparator());
 	}
 
 	/**

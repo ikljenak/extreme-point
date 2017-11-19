@@ -17,7 +17,6 @@ public class Application {
 	public static void main(String[] args) throws IOException,
 			InterruptedException {
 		initialConfiguration(args[0]);
-		
 		time = new long[Configuration.ITERATIONS_NUMBER];
 		amountOfContainers = new int[Configuration.ITERATIONS_NUMBER];
 		cost = new double[Configuration.ITERATIONS_NUMBER];
