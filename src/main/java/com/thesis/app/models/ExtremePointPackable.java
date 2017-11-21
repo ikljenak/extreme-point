@@ -1,19 +1,26 @@
 package com.thesis.app.models;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import com.thesis.app.utils.Configuration;
 
 public class ExtremePointPackable implements Packable {
 
 	private static final int POSSIBLE_ROTATIONS = 6;
 	private Container container = null;
+	private Map<Integer, List<Item>> itemsByCell = new HashMap<Integer, List<Item>>();
 	private Set<ExtremePoint> extremePoints = null;
 
 	public ExtremePointPackable(Container container) {
 		this.container = container;
 		this.extremePoints = new HashSet<ExtremePoint>();
-		 //this.extremePoints = new TreeSet<ExtremePoint>(
-		 //new ExtremePointDistanceToTopFrontRightCornerComparator());
+		//this.extremePoints = new TreeSet<ExtremePoint>(
+		//		new ExtremePointDistanceToTopFrontRightCornerComparator());
 	}
 
 	/**
@@ -53,13 +60,39 @@ public class ExtremePointPackable implements Packable {
 		// if there is a suitable position, it is used as the place of the item
 		// inside the container
 		item.setPosition(position);
-		container.add(item);
+		add(item);
 
 		// New Extreme Points are generated
 		addNewExtremePoints(position, item, container);
 		return true;
 	}
 
+	private void add(Item item) {
+		Point3D minCoords = new Point3D(item.getPosition());
+		Point3D maxCoords = new Point3D(minCoords.getX() + item.getWidth(),
+				minCoords.getY() + item.getDepth(), minCoords.getZ()
+						+ item.getHeight());
+		minCoords.normalize(container.getWidth(), container.getDepth(), container.getHeight());
+		maxCoords.normalize(container.getWidth(), container.getDepth(), container.getHeight());
+
+		for (double i = minCoords.getX(); i <= maxCoords.getX(); i += 1) {
+			for (double j = minCoords.getY(); j <= maxCoords.getY(); j += 1) {
+				for (double k = minCoords.getZ(); k <= maxCoords.getZ(); k += 1) {
+					double key = Math.pow(Configuration.CONTAINERS_CELL, 2) * k
+							+ Configuration.CONTAINERS_CELL * j + i;
+					if (itemsByCell.containsKey((int) key)) {
+						itemsByCell.get((int) key).add(item);
+					} else {
+						List<Item> cellItems = new ArrayList<Item>();
+						cellItems.add(item);
+						itemsByCell.put((int) key, cellItems);
+					}
+				}
+			}
+		}
+		container.add(item);
+	}
+	
 	/**
 	 * Checks if an item fits on any of the Extreme Points defined inside a
 	 * container
@@ -88,11 +121,8 @@ public class ExtremePointPackable implements Packable {
 
 			// For every item already packed, check if there is overlapping
 			if (!overlap) {
-				for (Item itemPacked : container.getItems()) {
-					if (item.overlaps(itemPacked)) {
-						overlap = true;
-						break;
-					}
+				if (itemsOverlapping(item)) {
+					overlap = true;
 				}
 			}
 
@@ -110,6 +140,34 @@ public class ExtremePointPackable implements Packable {
 			extremePoints.remove(chosenExtremePoint);
 		}
 		return chosenExtremePoint;
+	}
+
+	private boolean itemsOverlapping(Item item) {
+		Point3D minCoords = new Point3D(item.getPosition());
+		Point3D maxCoords = new Point3D(minCoords.getX() + item.getWidth(),
+				minCoords.getY() + item.getDepth(), minCoords.getZ()
+						+ item.getHeight());
+		minCoords.normalize(container.getWidth(), container.getDepth(),
+				container.getHeight());
+		maxCoords.normalize(container.getWidth(), container.getDepth(),
+				container.getHeight());
+
+		for (double i = minCoords.getX(); i <= maxCoords.getX(); i += 1) {
+			for (double j = minCoords.getY(); j <= maxCoords.getY(); j += 1) {
+				for (double k = minCoords.getZ(); k <= maxCoords.getZ(); k += 1) {
+					double key = Math.pow(Configuration.CONTAINERS_CELL, 2) * k
+							+ Configuration.CONTAINERS_CELL * j + i;
+					if (itemsByCell.containsKey((int)key)) {
+						for (Item itemPacked : itemsByCell.get((int)key)) {
+							if (item.overlaps(itemPacked)) {
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	/**

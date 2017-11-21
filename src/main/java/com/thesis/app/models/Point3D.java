@@ -1,5 +1,7 @@
 package com.thesis.app.models;
 
+import com.thesis.app.utils.Configuration;
+
 public class Point3D {
 	private double x;
 	private double y;
@@ -10,6 +12,12 @@ public class Point3D {
 		this.x = x;
 		this.y = y;
 		this.z = z;
+	}
+	
+	public Point3D(Point3D point) {
+		this.x = point.getX();
+		this.y = point.getY();
+		this.z = point.getZ();
 	}
 
 	// END CONSTRUCTORS
@@ -85,5 +93,11 @@ public class Point3D {
 	
 	public Point3D sum(Point3D point) {
 		return new Point3D(point.getX() + x, point.getY() + y, point.getZ() + z);
+	}
+	
+	public void normalize(double width, double depth, double height) {
+		this.x = Math.floor(x * Configuration.CONTAINERS_CELL / width);
+		this.y = Math.floor(y * Configuration.CONTAINERS_CELL / depth);
+		this.z = Math.floor(z * Configuration.CONTAINERS_CELL / height);
 	}
 }

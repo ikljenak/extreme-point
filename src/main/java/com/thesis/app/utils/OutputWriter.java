@@ -3,6 +3,7 @@ package com.thesis.app.utils;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import com.thesis.app.models.Container;
@@ -46,8 +47,9 @@ public class OutputWriter {
 				for (double i = 0.0; i < width; i += STEP) {
 					for (double j = 0.0; j < depth; j += STEP) {
 						for (double k = 0.0; k < height; k += STEP) {
-							writer.println((x + i) + " " + (y + j) + " "
-									+ (z + k) + " " + r + " " + g + " " + b);
+							DecimalFormat df = new DecimalFormat("####0.00");
+							writer.println(df.format(x + i) + " " + df.format(y + j) + " "
+									+ df.format(z + k) + " " + r + " " + g + " " + b);
 						}
 					}
 				}

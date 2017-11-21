@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.thesis.app.comparator.AreaHeightItemComparator;
 import com.thesis.app.comparator.SolutionFitnessComparator;
 import com.thesis.app.models.Container;
 import com.thesis.app.models.Item;
@@ -40,7 +41,7 @@ public class Genetic {
 		while (notImprovedGeneration < Configuration.FINAL_CONDITION) {
 			iterationBestFitness = 0;
 
-			ExecutorService es = Executors.newCachedThreadPool();
+			ExecutorService es = Executors.newFixedThreadPool(1);
 			for (SolutionGenetic solution : possibleBoxes) {
 				solution.setTotalItems(items.size());
 				List<Item> aux = new LinkedList<Item>();
@@ -68,8 +69,8 @@ public class Genetic {
 			possibleBoxes = newGenerationSolutions(possibleBoxes);
 		}
 
-		SolutionGenetic finalSolution = getBestSolution(possibleBoxes);
 		long endTime = System.currentTimeMillis();
+		SolutionGenetic finalSolution = getBestSolution(possibleBoxes);
 		pack(finalSolution, Configuration.VISUAL_OUTPUT);
 
 		return new Result(endTime - startTime,
@@ -102,11 +103,17 @@ public class Genetic {
 		}
 
 		BigDecimal totalVolume = new BigDecimal(0);
+		List<Container> emptyContainers = new ArrayList<Container>();
 		for (Container container : containers) {
-			totalVolume = totalVolume.add(container.getVolume());
+			if(container.getItemsPacked() == 0) {
+				emptyContainers.add(container);
+			} else {
+				totalVolume = totalVolume.add(container.getVolume());
+			}
 		}
+		containers.removeAll(emptyContainers);
+		
 		solution.setTotalVolume(totalVolume);
-
 		solution.setItemsPacked(itemsPacked);
 
 		if (print) {
@@ -164,6 +171,7 @@ public class Genetic {
 					new Double(values[2]), new Double(values[3])));
 		}
 		in.close();
+		Collections.sort(items, new AreaHeightItemComparator());
 	}
 
 	private BigDecimal getVolume(List<Item> items) {

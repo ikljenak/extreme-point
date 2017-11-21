@@ -19,6 +19,7 @@ public class Configuration {
 	public static String CONTAINER_SELECTION_METHOD;
 	public static int ITERATIONS_NUMBER;
 	public static boolean VISUAL_OUTPUT;
+	public static int CONTAINERS_CELL;
 	
 	public static void setProperties(Properties properties){
 		CONTAINERS_NUMBER = Integer.valueOf(properties.getProperty("containers.number"));
@@ -37,5 +38,6 @@ public class Configuration {
 		CONTAINER_SELECTION_METHOD = properties.getProperty("container.selection.method");
 		ITERATIONS_NUMBER = Integer.valueOf(properties.getProperty("iterations.number"));
 		VISUAL_OUTPUT = Boolean.valueOf(properties.getProperty("visual.output"));
+		CONTAINERS_CELL = Integer.valueOf(properties.getProperty("containers.cell"));
 	}
 }

@@ -149,13 +149,13 @@ public class Container extends Box {
 	 */
 	public Container copy() {
 		Container container = new Container(this);
-		if("EP".equals(Configuration.PACKING_METHOD)){
+		if ("EP".equals(Configuration.PACKING_METHOD)) {
 			container.setPackable(new ExtremePointPackable(container));
 		} else {
 			container.setPackable(new MaximalSpacePackable(container));
 		}
-		
-		for(Item item: this.getItems()){
+
+		for (Item item : this.getItems()) {
 			container.add(new Item(item));
 		}
 		return container;

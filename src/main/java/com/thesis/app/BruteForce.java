@@ -39,7 +39,7 @@ public class BruteForce {
 		double bestFitness = Double.MAX_VALUE;
 		double cost = 0;
 
-		ExecutorService es = Executors.newCachedThreadPool();
+		ExecutorService es = Executors.newFixedThreadPool(20);
 		for (List<Integer> containersIndexes : possibleBoxes) {
 			List<Container> containers = new ArrayList<Container>();
 			for (Integer i : containersIndexes) {

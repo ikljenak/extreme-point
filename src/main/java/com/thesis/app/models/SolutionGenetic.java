@@ -53,7 +53,7 @@ public class SolutionGenetic {
 			// Set gene with a random value between 0 and previously calculated
 			// maximum
 			genes[i] = (int) Math
-					.rint(Math.random() * maxAmountOfBoxesOfAClass) / 2;
+					.rint(Math.random() * maxAmountOfBoxesOfAClass);
 			refNumBoxes += genes[i];
 			double cost = container.getCost();
 			if (cost > higherCost) {
@@ -73,7 +73,6 @@ public class SolutionGenetic {
 			fitness = -Double.MAX_VALUE;
 			return;
 		}
-
 		itemsPacked = itemsPacked != totalItems ? -1 : 1;
 		fitness = (refCost / calculateCost() + getUsedVolume() +  refNumBoxes / amountOfBoxes)
 				* itemsPacked;
@@ -143,6 +142,14 @@ public class SolutionGenetic {
 		return this.itemsPacked;
 	}
 
+	public BigDecimal getItemsVolume() {
+		return itemsVolume;
+	}
+
+	public void setItemsVolume(BigDecimal itemsVolume) {
+		this.itemsVolume = itemsVolume;
+	}
+
 	/**
 	 * Takes two chromosomes and perform a crossover to generate offspring
 	 * 
@@ -153,6 +160,7 @@ public class SolutionGenetic {
 	 */
 	public SolutionGenetic cross(SolutionGenetic eliteProgenitor) {
 		SolutionGenetic offspring = new SolutionGenetic();
+		offspring.setItemsVolume(itemsVolume);
 		int[] progenitorGenes = getGenes();
 		int[] eliteGenes = eliteProgenitor.getGenes();
 		int[] offspringGenes = new int[Configuration.CONTAINERS_NUMBER];
