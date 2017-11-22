@@ -20,6 +20,9 @@ public class Configuration {
 	public static int ITERATIONS_NUMBER;
 	public static boolean VISUAL_OUTPUT;
 	public static int CONTAINERS_CELL;
+	public static int FITNESS_A;
+	public static int FITNESS_B;
+	public static int FITNESS_C;
 	
 	public static void setProperties(Properties properties){
 		CONTAINERS_NUMBER = Integer.valueOf(properties.getProperty("containers.number"));
@@ -39,5 +42,8 @@ public class Configuration {
 		ITERATIONS_NUMBER = Integer.valueOf(properties.getProperty("iterations.number"));
 		VISUAL_OUTPUT = Boolean.valueOf(properties.getProperty("visual.output"));
 		CONTAINERS_CELL = Integer.valueOf(properties.getProperty("containers.cell"));
+		FITNESS_A = Integer.valueOf(properties.getProperty("fitness.a"));
+		FITNESS_B = Integer.valueOf(properties.getProperty("fitness.b"));
+		FITNESS_C = Integer.valueOf(properties.getProperty("fitness.c"));
 	}
 }

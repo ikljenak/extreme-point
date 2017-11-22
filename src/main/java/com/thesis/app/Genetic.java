@@ -31,6 +31,7 @@ public class Genetic {
 	private double bestFitness = 0;
 	private double iterationBestFitness = 0;
 	private final List<Item> items = new LinkedList<Item>();
+	private int generations = 0;
 
 	public Result run() throws IOException, InterruptedException {
 		initializeItems();
@@ -66,11 +67,14 @@ public class Genetic {
 				notImprovedGeneration++;
 			}
 			possibleBoxes = newGenerationSolutions(possibleBoxes);
+			generations++;
 		}
 
 		long endTime = System.currentTimeMillis();
 		SolutionGenetic finalSolution = getBestSolution(possibleBoxes);
 		pack(finalSolution, Configuration.VISUAL_OUTPUT);
+		
+		System.out.println("GENERATIONS: " + generations);
 
 		return new Result(endTime - startTime,
 				finalSolution.calculateAmountOfBoxes(),
@@ -104,14 +108,14 @@ public class Genetic {
 		BigDecimal totalVolume = new BigDecimal(0);
 		List<Container> emptyContainers = new ArrayList<Container>();
 		for (Container container : containers) {
-			if(container.getItemsPacked() == 0) {
+			if (container.getItemsPacked() == 0) {
 				emptyContainers.add(container);
 			} else {
 				totalVolume = totalVolume.add(container.getVolume());
 			}
 		}
 		containers.removeAll(emptyContainers);
-		
+
 		solution.setTotalVolume(totalVolume);
 		solution.setItemsPacked(itemsPacked);
 
@@ -154,32 +158,60 @@ public class Genetic {
 			// Every randomly selected member is crossed with each elite member
 			for (int k = 0; k < eliteSize; k++) {
 				solution = solution.cross(oldGeneration.get(k));
-				//the offspring is included in the next generation
+				// the offspring is included in the next generation
 				newGeneration.add(solution);
 			}
 		}
 		return newGeneration;
 	}
 
+	/**
+	 * Reads from a csv file the specifications of a set of items and generates
+	 * the models
+	 * 
+	 * @throws IOException
+	 */
 	private void initializeItems() throws IOException {
 		BufferedReader in = new BufferedReader(new FileReader(
 				Configuration.INPUT_FILE));
+
 		for (int i = 0; i < Configuration.INPUT_SIZE; i++) {
 			String[] values = in.readLine().split(" ");
 			items.add(new Item(new Double(values[0]), new Double(values[1]),
 					new Double(values[2]), new Double(values[3])));
 		}
+
 		in.close();
 	}
 
+	/**
+	 * Calculates the total volume of a list of items by adding up the volumes
+	 * of every individual item
+	 * 
+	 * @param items
+	 * @return BigDecimal total volume
+	 */
 	private BigDecimal getVolume(List<Item> items) {
-		double volume = 0;
+		BigDecimal volume = new BigDecimal(0);
+
 		for (Item item : items) {
-			volume += item.getVolume().doubleValue();
+			volume = volume.add(item.getVolume());
 		}
-		return new BigDecimal(volume);
+
+		return volume;
 	}
 
+	/**
+	 * Generates a list of possible combinations of boxes to perform a packing
+	 * of items that add up to a given volume
+	 * 
+	 * @param volume
+	 *            of the list of items
+	 * @return List<SolutionGenetic> list of possible solutions
+	 * @throws JsonParseException
+	 * @throws JsonMappingException
+	 * @throws IOException
+	 */
 	private List<SolutionGenetic> getPossibleBoxes(BigDecimal volume)
 			throws JsonParseException, JsonMappingException, IOException {
 		return generateInitialSolutions(volume);
@@ -187,10 +219,12 @@ public class Genetic {
 
 	private List<SolutionGenetic> generateInitialSolutions(BigDecimal volume) {
 		List<SolutionGenetic> ans = new ArrayList<SolutionGenetic>();
+
 		for (int i = 0; i < Configuration.POPULATION_SIZE; i++) {
 			SolutionGenetic solution = new SolutionGenetic(volume);
 			ans.add(solution);
 		}
+
 		return ans;
 	}
 }

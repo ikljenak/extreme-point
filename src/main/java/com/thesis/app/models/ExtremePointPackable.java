@@ -6,7 +6,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
+import com.thesis.app.comparator.ExtremePointDistanceToTopFrontRightCornerComparator;
 import com.thesis.app.utils.Configuration;
 
 public class ExtremePointPackable implements Packable {
@@ -19,8 +21,8 @@ public class ExtremePointPackable implements Packable {
 	public ExtremePointPackable(Container container) {
 		this.container = container;
 		this.extremePoints = new HashSet<ExtremePoint>();
-		//this.extremePoints = new TreeSet<ExtremePoint>(
-		//		new ExtremePointDistanceToTopFrontRightCornerComparator());
+		 this.extremePoints = new TreeSet<ExtremePoint>(
+		 new ExtremePointDistanceToTopFrontRightCornerComparator());
 	}
 
 	/**
@@ -72,8 +74,10 @@ public class ExtremePointPackable implements Packable {
 		Point3D maxCoords = new Point3D(minCoords.getX() + item.getWidth(),
 				minCoords.getY() + item.getDepth(), minCoords.getZ()
 						+ item.getHeight());
-		minCoords.normalize(container.getWidth(), container.getDepth(), container.getHeight());
-		maxCoords.normalize(container.getWidth(), container.getDepth(), container.getHeight());
+		minCoords.normalize(container.getWidth(), container.getDepth(),
+				container.getHeight());
+		maxCoords.normalize(container.getWidth(), container.getDepth(),
+				container.getHeight());
 
 		for (double i = minCoords.getX(); i <= maxCoords.getX(); i += 1) {
 			for (double j = minCoords.getY(); j <= maxCoords.getY(); j += 1) {
@@ -92,7 +96,7 @@ public class ExtremePointPackable implements Packable {
 		}
 		container.add(item);
 	}
-	
+
 	/**
 	 * Checks if an item fits on any of the Extreme Points defined inside a
 	 * container
@@ -142,11 +146,20 @@ public class ExtremePointPackable implements Packable {
 		return chosenExtremePoint;
 	}
 
+	/**
+	 * Check if an item overlaps any of the items that have already been packed
+	 * 
+	 * @param item
+	 * @return boolean true if there is overlapping, false otherwise
+	 */
 	private boolean itemsOverlapping(Item item) {
+		// Retrieve minimum and maximum coordinates of item
 		Point3D minCoords = new Point3D(item.getPosition());
 		Point3D maxCoords = new Point3D(minCoords.getX() + item.getWidth(),
 				minCoords.getY() + item.getDepth(), minCoords.getZ()
 						+ item.getHeight());
+
+		// Transform minimum and maximum coordinates
 		minCoords.normalize(container.getWidth(), container.getDepth(),
 				container.getHeight());
 		maxCoords.normalize(container.getWidth(), container.getDepth(),
@@ -157,8 +170,8 @@ public class ExtremePointPackable implements Packable {
 				for (double k = minCoords.getZ(); k <= maxCoords.getZ(); k += 1) {
 					double key = Math.pow(Configuration.CONTAINERS_CELL, 2) * k
 							+ Configuration.CONTAINERS_CELL * j + i;
-					if (itemsByCell.containsKey((int)key)) {
-						for (Item itemPacked : itemsByCell.get((int)key)) {
+					if (itemsByCell.containsKey((int) key)) {
+						for (Item itemPacked : itemsByCell.get((int) key)) {
 							if (item.overlaps(itemPacked)) {
 								return true;
 							}

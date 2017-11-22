@@ -74,15 +74,18 @@ public class SolutionGenetic {
 			return;
 		}
 		itemsPacked = itemsPacked != totalItems ? -1 : 1;
-		fitness = (refCost / calculateCost() + getUsedVolume() +  refNumBoxes / amountOfBoxes)
+		System.out.println(refCost / calculateCost() + " " + getUsedVolume() + " " + ((double)refNumBoxes) / amountOfBoxes);
+		fitness = (Configuration.FITNESS_A * refCost / calculateCost()
+				+ Configuration.FITNESS_B * getUsedVolume() + Configuration.FITNESS_C
+				* refNumBoxes / amountOfBoxes)
 				* itemsPacked;
 	}
 
 	public double getUsedVolume() {
 		double usedVolume;
 		try {
-			usedVolume = itemsVolume.divide(totalVolume,
-					MathContext.DECIMAL128).doubleValue();
+			usedVolume = itemsVolume
+					.divide(totalVolume, MathContext.DECIMAL128).doubleValue();
 		} catch (ArithmeticException e) {
 			usedVolume = 0;
 		}

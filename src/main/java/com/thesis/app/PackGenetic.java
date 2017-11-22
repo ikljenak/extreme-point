@@ -40,7 +40,6 @@ public class PackGenetic implements Runnable {
 			if (packed) {
 				itemsPacked++;
 			}
-			System.out.println(Thread.currentThread() + " " + itemsPacked);
 		}
 
 		BigDecimal remainingVolume = new BigDecimal(0);
