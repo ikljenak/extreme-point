@@ -26,6 +26,9 @@ public class Application {
 			for (double j = 0; j < 3; j += .25) {
 				for (double k = 0; k < 3; k += .25) {
 					System.out.println(n + " " + j + " " + k);
+					Configuration.FITNESS_A = n;
+					Configuration.FITNESS_B = j;
+					Configuration.FITNESS_C = k;
 					for (int i = 0; i < Configuration.ITERATIONS_NUMBER; i++) {
 						Result result = run();
 						time[i] = result.getTime();
