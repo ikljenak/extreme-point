@@ -90,14 +90,29 @@ public class Point3D {
 				+ Math.pow((position.getY() - y), 2)
 				+ Math.pow((position.getZ() - z), 2));
 	}
-	
+
 	public Point3D sum(Point3D point) {
 		return new Point3D(point.getX() + x, point.getY() + y, point.getZ() + z);
 	}
-	
+
 	public void normalize(double width, double depth, double height) {
 		this.x = Math.floor(x * Configuration.CONTAINERS_CELL / width);
 		this.y = Math.floor(y * Configuration.CONTAINERS_CELL / depth);
 		this.z = Math.floor(z * Configuration.CONTAINERS_CELL / height);
+	}
+
+	@Override
+	public int hashCode() {
+		return ((int) (x + y + z) * 10000);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!obj.getClass().equals(this.getClass())) {
+			return false;
+		}
+
+		return ((Point3D) obj).x == this.x && ((Point3D) obj).y == this.y
+				&& ((Point3D) obj).z == this.z;
 	}
 }

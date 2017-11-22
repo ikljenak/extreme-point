@@ -1,16 +1,21 @@
 package com.thesis.app.models;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
 import com.thesis.app.comparator.MaximalSpaceVolumeComparator;
+import com.thesis.app.utils.Configuration;
 
 public class MaximalSpacePackable implements Packable {
 
 	private Set<MaximalSpace> maximalSpaces = new TreeSet<MaximalSpace>(
 			new MaximalSpaceVolumeComparator());
+	private Map<Integer, Set<MaximalSpace>> maximalSpacesByCell = new HashMap<Integer, Set<MaximalSpace>>();
 	private Container container;
 	private static final int POSSIBLE_ROTATIONS = 6;
 
@@ -30,17 +35,18 @@ public class MaximalSpacePackable implements Packable {
 		// If the container has no items inside, the position (0, 0, 0) is
 		// contemplated as the place for the first item
 		if (maximalSpaces.isEmpty()) {
-			maximalSpaces.add(new MaximalSpace(new Point3D(0, 0, 0),
-					new Point3D(container.getWidth(), container.getDepth(),
-							container.getHeight())));
+			addMaximalSpace(new MaximalSpace(new Point3D(0, 0, 0), new Point3D(
+					container.getWidth() - 0.1, container.getDepth() - 0.1,
+					container.getHeight() - 0.1)));
 		}
 
 		// A Maximal Space where the item could be placed is searched. If
 		// there is no such Maximal Space, the item is rotated until a point
 		// is found or every rotation is tried
+		MaximalSpace maximalSpace;
 		for (int i = 0; i < POSSIBLE_ROTATIONS; i++) {
 			item.rotate(i);
-			MaximalSpace maximalSpace = checkFittingMaximalSpace(item);
+			maximalSpace = checkFittingMaximalSpace(item);
 			if (maximalSpace != null) {
 				// When a suitable position and orientation is found,
 				// remaining rotations are no longer tried
@@ -72,34 +78,33 @@ public class MaximalSpacePackable implements Packable {
 	 */
 	private List<MaximalSpace> differenceProcess(Item item,
 			MaximalSpace maximalSpace) {
-		List<MaximalSpace> maximalSpaces = new ArrayList<MaximalSpace>();
-
+		List<MaximalSpace> newMaximalSpaces = new ArrayList<MaximalSpace>();
 		Point3D minCoords = maximalSpace.getMinCoords();
 		Point3D maxCoords = maximalSpace.getMaxCoords();
 		Point3D position = item.getPosition();
 
-		maximalSpaces.add(new MaximalSpace(new Point3D(minCoords.getX(),
+		newMaximalSpaces.add(new MaximalSpace(new Point3D(minCoords.getX(),
 				minCoords.getY(), minCoords.getZ()), new Point3D(position
 				.getX(), maxCoords.getY(), maxCoords.getZ())));
-		maximalSpaces.add(new MaximalSpace(new Point3D(minCoords.getX(),
+		newMaximalSpaces.add(new MaximalSpace(new Point3D(minCoords.getX(),
 				minCoords.getY(), minCoords.getZ()), new Point3D(maxCoords
 				.getX(), position.getY(), maxCoords.getZ())));
-		maximalSpaces.add(new MaximalSpace(new Point3D(minCoords.getX(),
+		newMaximalSpaces.add(new MaximalSpace(new Point3D(minCoords.getX(),
 				minCoords.getY(), minCoords.getZ()), new Point3D(maxCoords
 				.getX(), maxCoords.getY(), position.getZ())));
-		maximalSpaces.add(new MaximalSpace(new Point3D(position.getX()
+		newMaximalSpaces.add(new MaximalSpace(new Point3D(position.getX()
 				+ item.getWidth(), minCoords.getY(), minCoords.getZ()),
 				new Point3D(maxCoords.getX(), maxCoords.getY(), maxCoords
 						.getZ())));
-		maximalSpaces.add(new MaximalSpace(new Point3D(minCoords.getX(),
+		newMaximalSpaces.add(new MaximalSpace(new Point3D(minCoords.getX(),
 				position.getY() + item.getDepth(), minCoords.getZ()),
 				new Point3D(maxCoords.getX(), maxCoords.getY(), maxCoords
 						.getZ())));
-		maximalSpaces.add(new MaximalSpace(new Point3D(minCoords.getX(),
+		newMaximalSpaces.add(new MaximalSpace(new Point3D(minCoords.getX(),
 				minCoords.getY(), position.getZ() + item.getHeight()),
 				new Point3D(maxCoords.getX(), maxCoords.getY(), maxCoords
 						.getZ())));
-		return maximalSpaces;
+		return newMaximalSpaces;
 	}
 
 	/**
@@ -110,38 +115,81 @@ public class MaximalSpacePackable implements Packable {
 	 * @param item
 	 */
 	private void addNewMaximalSpaces(Item item) {
-
-		// A list is defined for newly generated Maximal Spaces and another for
-		// Maximal Spaces that are no longer empty and should be removed
-		List<MaximalSpace> maximalSpacesToAdd = new ArrayList<MaximalSpace>();
-		List<MaximalSpace> maximalSpacesToRemove = new ArrayList<MaximalSpace>();
-
 		// Every existing Maximal Space is verified and if any of them is
 		// overlapped by the item, it is added to the removal list and maximal
 		// spaces are defined in the space that has not been used
-		for (MaximalSpace maximalSpace : maximalSpaces) {
-			if (item.overlaps(maximalSpace)) {
-				maximalSpacesToAdd
-						.addAll(differenceProcess(item, maximalSpace));
-				maximalSpacesToRemove.add(maximalSpace);
-			}
-		}
+		itemsOverlapping(item);
+	}
 
-		// Maximal Spaces in the removal list are removed
-		maximalSpaces.removeAll(maximalSpacesToRemove);
+	private void itemsOverlapping(Item item) {
+		Point3D minCoords = new Point3D(item.getPosition());
+		Point3D maxCoords = new Point3D(minCoords.getX() + item.getWidth(),
+				minCoords.getY() + item.getDepth(), minCoords.getZ()
+						+ item.getHeight());
+		minCoords.normalize(container.getWidth(), container.getDepth(),
+				container.getHeight());
+		maxCoords.normalize(container.getWidth(), container.getDepth(),
+				container.getHeight());
 
-		// New Maximal Spaces with no negligible dimensions and that are not
-		// contained inside another Maximal Space are considered for future
-		// items
-		for (MaximalSpace maximalSpaceToAdd : maximalSpacesToAdd) {
-			boolean isContained = false;
-			if (dimensionsNotNegligible(maximalSpaceToAdd)
-					&& !isContained(maximalSpaceToAdd)) {
-				if (!isContained) {
-					maximalSpaces.add(maximalSpaceToAdd);
+		List<MaximalSpace> newMaximalSpaces = new ArrayList<MaximalSpace>();
+		Set<MaximalSpace> maximalSpacesToCheck = new HashSet<MaximalSpace>();
+		for (double i = minCoords.getX(); i <= maxCoords.getX(); i += 1) {
+			for (double j = minCoords.getY(); j <= maxCoords.getY(); j += 1) {
+				for (double k = minCoords.getZ(); k <= maxCoords.getZ(); k += 1) {
+					double key = Math.pow(Configuration.CONTAINERS_CELL, 2) * k
+							+ Configuration.CONTAINERS_CELL * j + i;
+					if (maximalSpacesByCell.containsKey((int) key)) {
+						for (MaximalSpace maximalSpace : maximalSpacesByCell
+								.get((int) key)) {
+							if (!maximalSpace.isUsed()){
+								maximalSpacesToCheck.add(maximalSpace);
+							}
+						}
+					}
 				}
 			}
 		}
+		for (MaximalSpace maximalSpaceToCheck : maximalSpacesToCheck) {
+			if (item.overlaps(maximalSpaceToCheck)) {
+				List<MaximalSpace> maximalSpacesToAdd = differenceProcess(item,
+						maximalSpaceToCheck);
+				for (MaximalSpace maximalSpaceToAdd : maximalSpacesToAdd) {
+					if (dimensionsNotNegligible(maximalSpaceToAdd)
+							&& !isContained(maximalSpaceToAdd)) {
+						newMaximalSpaces.add(maximalSpaceToAdd);
+						maximalSpaceToCheck.setUsed(true);
+					}
+				}
+			}
+		}
+		for (MaximalSpace maximalSpace : newMaximalSpaces) {
+			addMaximalSpace(maximalSpace);
+		}
+	}
+
+	private void addMaximalSpace(MaximalSpace maximalSpace) {
+		Point3D minCoords = new Point3D(maximalSpace.getMinCoords());
+		Point3D maxCoords = new Point3D(maximalSpace.getMaxCoords());
+		minCoords.normalize(container.getWidth(), container.getDepth(),
+				container.getHeight());
+		maxCoords.normalize(container.getWidth(), container.getDepth(),
+				container.getHeight());
+		for (double i = minCoords.getX(); i <= maxCoords.getX(); i += 1) {
+			for (double j = minCoords.getY(); j <= maxCoords.getY(); j += 1) {
+				for (double k = minCoords.getZ(); k <= maxCoords.getZ(); k += 1) {
+					double key = Math.pow(Configuration.CONTAINERS_CELL, 2) * k
+							+ Configuration.CONTAINERS_CELL * j + i;
+					if (maximalSpacesByCell.containsKey((int) key)) {
+						maximalSpacesByCell.get((int) key).add(maximalSpace);
+					} else {
+						Set<MaximalSpace> cellItems = new HashSet<MaximalSpace>();
+						cellItems.add(maximalSpace);
+						maximalSpacesByCell.put(((int) key), cellItems);
+					}
+				}
+			}
+		}
+		maximalSpaces.add(maximalSpace);
 	}
 
 	private boolean isContained(MaximalSpace maximalSpaceToAdd) {
@@ -171,6 +219,9 @@ public class MaximalSpacePackable implements Packable {
 	 */
 	private MaximalSpace checkFittingMaximalSpace(Item item) {
 		for (MaximalSpace maximalSpace : maximalSpaces) {
+			if (maximalSpace.isUsed()) {
+				continue;
+			}
 			item.setPosition(maximalSpace.getMinCoords());
 			// get maximum coordinate in every axis
 			Point3D position = item.getPosition();

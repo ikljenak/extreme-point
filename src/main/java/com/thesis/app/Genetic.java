@@ -17,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.thesis.app.comparator.AreaHeightItemComparator;
 import com.thesis.app.comparator.SolutionFitnessComparator;
 import com.thesis.app.models.Container;
 import com.thesis.app.models.Item;
@@ -41,7 +40,7 @@ public class Genetic {
 		while (notImprovedGeneration < Configuration.FINAL_CONDITION) {
 			iterationBestFitness = 0;
 
-			ExecutorService es = Executors.newFixedThreadPool(1);
+			ExecutorService es = Executors.newFixedThreadPool(20);
 			for (SolutionGenetic solution : possibleBoxes) {
 				solution.setTotalItems(items.size());
 				List<Item> aux = new LinkedList<Item>();
@@ -171,7 +170,6 @@ public class Genetic {
 					new Double(values[2]), new Double(values[3])));
 		}
 		in.close();
-		Collections.sort(items, new AreaHeightItemComparator());
 	}
 
 	private BigDecimal getVolume(List<Item> items) {
