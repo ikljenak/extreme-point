@@ -113,7 +113,6 @@ public class ExtremePointPackable implements Packable {
 			double x = extremePoint.getX() + item.getWidth();
 			double y = extremePoint.getY() + item.getDepth();
 			double z = extremePoint.getZ() + item.getHeight();
-
 			boolean overlap = false;
 			// If the item exceeds the dimensions of the container when placed
 			// on the evaluated Extreme Point, a flag is set to proceed with
@@ -122,14 +121,12 @@ public class ExtremePointPackable implements Packable {
 					|| z > container.getHeight()) {
 				overlap = true;
 			}
-
 			// For every item already packed, check if there is overlapping
 			if (!overlap) {
 				if (itemsOverlapping(item)) {
 					overlap = true;
 				}
 			}
-
 			// If there is not overlapping the item could be placed
 			// in this extreme point
 			if (!overlap) {
@@ -137,7 +134,6 @@ public class ExtremePointPackable implements Packable {
 				break;
 			}
 		}
-
 		// If a Extreme Point is selected it is removed from the list of Extreme
 		// Points
 		if (chosenExtremePoint != null) {

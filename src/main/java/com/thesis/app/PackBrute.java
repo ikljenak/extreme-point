@@ -5,13 +5,13 @@ import java.util.List;
 
 import com.thesis.app.models.Container;
 import com.thesis.app.models.Item;
-import com.thesis.app.models.SolutionBrute;
+import com.thesis.app.models.Solution;
 
 public class PackBrute implements Runnable{
-	private SolutionBrute solution;
+	private Solution solution;
 	private List<Item> items;
 	
-	public PackBrute(SolutionBrute solution, List<Item> items) {
+	public PackBrute(Solution solution, List<Item> items) {
 		this.solution = solution;
 		this.items = items;
 	}

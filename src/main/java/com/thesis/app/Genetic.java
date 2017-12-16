@@ -21,7 +21,7 @@ import com.thesis.app.comparator.SolutionFitnessComparator;
 import com.thesis.app.models.Container;
 import com.thesis.app.models.Item;
 import com.thesis.app.models.Result;
-import com.thesis.app.models.SolutionGenetic;
+import com.thesis.app.models.Individual;
 import com.thesis.app.utils.BoxHelper;
 import com.thesis.app.utils.Configuration;
 import com.thesis.app.utils.OutputWriter;
@@ -31,50 +31,57 @@ public class Genetic {
 	private double bestFitness = 0;
 	private double iterationBestFitness = 0;
 	private final List<Item> items = new LinkedList<Item>();
-	private int generations = 0;
 
 	public Result run() throws IOException, InterruptedException {
 		initializeItems();
 		long startTime = System.currentTimeMillis();
-		List<SolutionGenetic> possibleBoxes = getPossibleBoxes(getVolume(items));
-		int notImprovedGeneration = 0;
-		while (notImprovedGeneration < Configuration.FINAL_CONDITION) {
+		List<Individual> population = getPossibleBoxes(getVolume(items));
+		int generationsNotImproved = 0;
+
+		// Run evolutionary algorithm until a given number of generations do not
+		// show an increase in the best fitness value of the population
+		while (generationsNotImproved < Configuration.FINAL_CONDITION) {
 			iterationBestFitness = 0;
 
-			ExecutorService es = Executors.newFixedThreadPool(20);
-			for (SolutionGenetic solution : possibleBoxes) {
-				solution.setTotalItems(items.size());
+			// Generate pools of threads with as much threads as individuals in
+			// the population
+			ExecutorService es = Executors
+					.newFixedThreadPool(Configuration.POPULATION_SIZE);
+
+			// Assign a thread to every individual and command the execution of
+			// the packing routine with a copy of the set of items
+			for (Individual individual : population) {
 				List<Item> aux = new LinkedList<Item>();
 				for (Item item : items) {
 					aux.add(new Item(item));
 				}
-				es.execute(new PackGenetic(solution, aux));
+				es.execute(new PackEvolutionary(individual, aux));
 			}
+
+			// Prevent the launching of new threads and wait for termination of
+			// running ones
 			es.shutdown();
 			boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
+
+			// Calculate best fitness of the current generation and compare it
+			// to global best fitness to verify if there was any improvement
 			if (finished) {
-				for (SolutionGenetic solution : possibleBoxes) {
-					double fitness = solution.getFitness();
-					if (fitness > iterationBestFitness) {
-						iterationBestFitness = fitness;
-					}
-				}
+				calculateIterationBestFitness(population);
 			}
 			if (iterationBestFitness > bestFitness) {
 				bestFitness = iterationBestFitness;
-				notImprovedGeneration = 0;
+				generationsNotImproved = 0;
 			} else {
-				notImprovedGeneration++;
+				generationsNotImproved++;
 			}
-			possibleBoxes = newGenerationSolutions(possibleBoxes);
-			generations++;
+			
+			// Create new generation
+			population = newGeneration(population);
 		}
 
 		long endTime = System.currentTimeMillis();
-		SolutionGenetic finalSolution = getBestSolution(possibleBoxes);
+		Individual finalSolution = getBestSolution(population);
 		pack(finalSolution, Configuration.VISUAL_OUTPUT);
-		
-		System.out.println("GENERATIONS: " + generations);
 
 		return new Result(endTime - startTime,
 				finalSolution.calculateAmountOfBoxes(),
@@ -82,7 +89,17 @@ public class Genetic {
 				finalSolution.getItemsPacked());
 	}
 
-	private double pack(SolutionGenetic solution, boolean print)
+	private void calculateIterationBestFitness(List<Individual> population) {
+		for (Individual solution : population) {
+			double fitness = solution.getFitness();
+			if (fitness > iterationBestFitness) {
+				iterationBestFitness = fitness;
+			}
+		}
+
+	}
+
+	private double pack(Individual solution, boolean print)
 			throws FileNotFoundException, UnsupportedEncodingException {
 		List<Container> containers = new ArrayList<Container>();
 		int[] genes = solution.getGenes();
@@ -126,7 +143,7 @@ public class Genetic {
 		return solution.getFitness();
 	}
 
-	private SolutionGenetic getBestSolution(List<SolutionGenetic> solutions) {
+	private Individual getBestSolution(List<Individual> solutions) {
 		Collections.sort(solutions, new SolutionFitnessComparator());
 		return solutions.get(0);
 	}
@@ -137,12 +154,12 @@ public class Genetic {
 	 * @param oldGeneration
 	 * @return list of members of the population in the next generation
 	 */
-	private List<SolutionGenetic> newGenerationSolutions(
-			List<SolutionGenetic> oldGeneration) {
+	private List<Individual> newGeneration(
+			List<Individual> oldGeneration) {
 		// Members of the population are sorted according to their fitness
 		Collections.sort(oldGeneration, new SolutionFitnessComparator());
 
-		List<SolutionGenetic> newGeneration = new ArrayList<SolutionGenetic>();
+		List<Individual> newGeneration = new ArrayList<Individual>();
 
 		// Elite size is calculated
 		int eliteSize = (int) (Configuration.POPULATION_SIZE * Configuration.ELITE_PERCENTAGE);
@@ -152,7 +169,7 @@ public class Genetic {
 
 		for (int i = 0; i < eliteSize; i++) {
 			// Random members of the rest of the population are selected
-			SolutionGenetic solution = oldGeneration.get((new Random())
+			Individual solution = oldGeneration.get((new Random())
 					.nextInt(oldGeneration.size() - eliteSize) + eliteSize);
 
 			// Every randomly selected member is crossed with each elite member
@@ -212,16 +229,16 @@ public class Genetic {
 	 * @throws JsonMappingException
 	 * @throws IOException
 	 */
-	private List<SolutionGenetic> getPossibleBoxes(BigDecimal volume)
+	private List<Individual> getPossibleBoxes(BigDecimal volume)
 			throws JsonParseException, JsonMappingException, IOException {
 		return generateInitialSolutions(volume);
 	}
 
-	private List<SolutionGenetic> generateInitialSolutions(BigDecimal volume) {
-		List<SolutionGenetic> ans = new ArrayList<SolutionGenetic>();
+	private List<Individual> generateInitialSolutions(BigDecimal volume) {
+		List<Individual> ans = new ArrayList<Individual>();
 
 		for (int i = 0; i < Configuration.POPULATION_SIZE; i++) {
-			SolutionGenetic solution = new SolutionGenetic(volume);
+			Individual solution = new Individual(volume);
 			ans.add(solution);
 		}
 

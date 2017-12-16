@@ -22,29 +22,7 @@ public class Application {
 		cost = new double[Configuration.ITERATIONS_NUMBER];
 		usedVolume = new double[Configuration.ITERATIONS_NUMBER];
 		itemsPacked = new int[Configuration.ITERATIONS_NUMBER];
-		for (double n = 0; n < 3; n += .25) {
-			for (double j = 0; j < 3; j += .25) {
-				for (double k = 0; k < 3; k += .25) {
-					System.out.println(n + " " + j + " " + k);
-					Configuration.FITNESS_A = n;
-					Configuration.FITNESS_B = j;
-					Configuration.FITNESS_C = k;
-					for (int i = 0; i < Configuration.ITERATIONS_NUMBER; i++) {
-						Result result = run();
-						time[i] = result.getTime();
-						amountOfContainers[i] = result.getAmountOfContainers();
-						cost[i] = result.getCost();
-						usedVolume[i] = result.getUsedVolume();
-						itemsPacked[i] = result.getItemsPacked();
-
-						System.out.println(time[i] + ","
-								+ amountOfContainers[i] + "," + cost[i] + ","
-								+ usedVolume[i] + "," + itemsPacked[i]);
-					}
-					System.out.println();
-				}
-			}
-		}
+	
 		for (int i = 0; i < Configuration.ITERATIONS_NUMBER; i++) {
 			Result result = run();
 			time[i] = result.getTime();

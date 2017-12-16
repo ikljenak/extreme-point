@@ -20,47 +20,47 @@ import com.thesis.app.comparator.SetOfBoxesCostComparator;
 import com.thesis.app.models.Container;
 import com.thesis.app.models.Item;
 import com.thesis.app.models.Result;
-import com.thesis.app.models.SolutionBrute;
+import com.thesis.app.models.Solution;
 import com.thesis.app.utils.BoxHelper;
 import com.thesis.app.utils.Configuration;
 import com.thesis.app.utils.OutputWriter;
 
 public class BruteForce {
-	private static final List<Item> items = new LinkedList<Item>();
-	private static Collection<Container> boxes;
+	private final List<Item> items = new LinkedList<Item>();
+	private Collection<Container> boxes;
+	private final int THREADS = 20;
+	private Solution bestSolution = null;
+	private double bestFitness = Double.MAX_VALUE;
+	private List<Solution> solutions = new ArrayList<Solution>();
 
 	public Result run() throws IOException, InterruptedException {
 		initializeItems();
 		boxes = BoxHelper.getInstance().getAllBoxes();
 		long startTime = System.currentTimeMillis();
-		Set<List<Integer>> possibleBoxes = getPossibleBoxes(getVolume(items));
-		SolutionBrute bestSolution = null;
-		List<SolutionBrute> solutions = new ArrayList<SolutionBrute>();
-		double bestFitness = Double.MAX_VALUE;
-		double cost = 0;
+		Set<List<Integer>> possibleCombinationsOfContainers = getPossibleBoxes(getVolume(items));
 
-		ExecutorService es = Executors.newFixedThreadPool(20);
-		for (List<Integer> containersIndexes : possibleBoxes) {
-			List<Container> containers = new ArrayList<Container>();
-			for (Integer i : containersIndexes) {
-				containers.add(BoxHelper.getInstance().getBox(i).copy());
-			}
-			SolutionBrute aux = new SolutionBrute(containers);
-			solutions.add(aux);
-			es.execute(new PackBrute(aux, items));
+		// Generate pools of threads with a fixed number of threads
+		ExecutorService es = Executors.newFixedThreadPool(THREADS);
+
+		// Iterate over a set of possible combinations of containers. Every
+		// combination is a list of numbers representing one container.
+		// Assign a thread to every individual and command the execution of
+		// the packing routine with a copy of the set of items
+		for (List<Integer> containerIndexes : possibleCombinationsOfContainers) {
+			Solution containers = modelContainers(containerIndexes);		
+			es.execute(new PackBrute(containers, items));
 		}
+
+		// Prevent the launching of new threads and wait for termination of
+		// running ones
 		es.shutdown();
-		boolean finished = es.awaitTermination(1, TimeUnit.MINUTES);
+		boolean finished = es.awaitTermination(10, TimeUnit.MINUTES);
+
+		// Find best solution
 		if (finished) {
-			for (SolutionBrute solution : solutions) {
-				cost = solution.getCost();
-				if (solution.getItemsPacked() == items.size()
-						&& cost < bestFitness) {
-					bestSolution = solution;
-					bestFitness = cost;
-				}
-			}
+			bestSolution(solutions);
 		}
+
 		long endTime = System.currentTimeMillis();
 
 		if (Configuration.VISUAL_OUTPUT) {
@@ -82,6 +82,26 @@ public class BruteForce {
 					new Double(values[2]), new Double(values[3])));
 		}
 		in.close();
+	}
+	
+	private Solution modelContainers(List<Integer> containersIndexes) {
+		List<Container> containers = new ArrayList<Container>();
+		for (Integer i : containersIndexes) {
+			containers.add(BoxHelper.getInstance().getBox(i).copy());
+		}
+		Solution aux = new Solution(containers);
+		solutions.add(aux);
+		return aux;
+	}
+	
+	private void bestSolution(List<Solution> solutions) {
+		for (Solution solution : solutions) {
+			if (solution.getItemsPacked() == items.size()
+					&& solution.getCost() < bestFitness) {
+				bestSolution = solution;
+				bestFitness = solution.getCost();
+			}
+		}
 	}
 
 	private BigDecimal getVolume(List<Item> items) {
